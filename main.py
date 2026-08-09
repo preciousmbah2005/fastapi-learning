@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.params import Body
 from pydantic import BaseModel 
 from random import randrange 
@@ -20,7 +20,7 @@ def find_post(id):
         if p["id"] == id:
             return p
 
-# Path operation or refered to a route
+# path operation decorator with the route "/"
 @app.get("/") # Decorator
 def root(): # Function
     return {"message": "welcome to my api!"}
@@ -41,9 +41,22 @@ def create_posts(post: Post):
     return {"data": post_dict}
 # title str, content str
 
+
+# /posts/latest must be defined before /posts/{id} because FastAPI matches routes in order.
+# If /posts/{id} were first, a request to /posts/latest would match it with id="latest",
+# causing an error. By placing /posts/latest first, it gets priority and matches correctly.
+
+@app.get("/posts/latest")
+def get_latest_post():
+    post = my_posts[len(my_posts) -1]
+    return {"latest_post": post}
+
 @app.get("/posts/{id}")
-def get_post(id: int):
+def get_post(id: int, response: Response):
     post = find_post(id)
+    if not post:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"error": "Post not found"}
     print(post)
     return {"post_detail": post}
 
