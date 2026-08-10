@@ -20,6 +20,11 @@ def find_post(id):
         if p["id"] == id:
             return p
 
+def find_index_post(id):
+    for i, p in enumerate(my_posts):
+        if p["id"] == id:
+            return i
+
 # path operation decorator with the route "/"
 @app.get("/") # Decorator
 def root(): # Function
@@ -53,6 +58,11 @@ def get_latest_post():
 
 @app.get("/posts/{id}")
 def get_post(id: int, response: Response):
+    # This route uses a path parameter named 'id'.
+    # FastAPI will capture the segment after /posts/ and convert it to int.
+    # For example, /posts/1 and /posts/2 are valid requests.
+    # It may appear to only work for 1 because the current sample data
+    # contains a post with id=1, and there is no post for other ids unless added.
     post = find_post(id)
     if not post:
         response.status_code = status.HTTP_404_NOT_FOUND
@@ -60,5 +70,14 @@ def get_post(id: int, response: Response):
     print(post)
     return {"post_detail": post}
 
+@app.delete("/posts/{id}")
+def delete_post(id: int):
+    # deleting post
+    # find the index in the array that has required ID
+    # my_post.pop(index)
+    index = find_index_post(id)
+
+    my_posts.pop(index)
+    return {"message": "post was successfully deleted"}
 
 
